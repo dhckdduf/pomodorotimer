@@ -1,122 +1,66 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+class PomodoroTimer {
+  int workSeconds;   // 집중 시간 //정수 값
+  int breakSeconds;  // 휴식 시간 //정수 값
+  int cycles;        // 반복할 사이클 //정수 값
+  int currentCycle = 1; // 현재 진행 중인 사이클 기본값 1 //정수 값
+  bool isWorking = true; // 현재 작업 상태 (true: 집중 모드, false: 휴식 모드) //불리언
+
+  Timer? timer; //nullable (값이 없을 수도 있음)
+  int remainingTime = 0;
+
+  PomodoroTimer({this.workSeconds = 5, this.breakSeconds = 3, this.cycles = 2});
+  //생성자: workSeconds, breakSeconds, cycles 값을 상속 받아 초기화 시킵니다.
+  // 타이머 시작(5초 집중 3초 휴식 2사이클)
+  void start() {
+    print("포모도로 타이머 시작! (총 $cycles 사이클)\n");
+
+    remainingTime = workSeconds; //첫번째 사이클에서 집중시간 설정을 합니다.
+    print("사이클 $currentCycle: 집중 시간 ${workSeconds}초 시작!");
+
+    _startCountdown(); //카운트 다운 함수 실행
+  }
+
+  // 카운트다운 시작
+  void _startCountdown() {
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      if (remainingTime > 0) {
+        print("$remainingTime초 남음...");
+        remainingTime--;
+      } else {
+        timer?.cancel(); // 현재 타이머 종료
+        print("완료!\n");
+//1초마다 실행되는 타이머를 생성함. remainingTime을 1초씩 감소시키고 print 시킵니다.
+        if (isWorking) {
+          // 집중 시간이 끝나면 → 휴식 시작
+          if (currentCycle <= cycles) {
+            isWorking = false;
+            remainingTime = breakSeconds;
+            print("휴식 시간 ${breakSeconds}초 시작!");
+            _startCountdown();
+          }
+        } else {
+          // 집중 시간이 끝나면(isWorking이 false면) → 다음 사이클 시작
+          currentCycle++;
+          if (currentCycle <= cycles) {
+            isWorking = true;// 휴식 시간이 끝나면(isWorking이 true면) → 다음 사이클 시작
+            remainingTime = workSeconds;
+            print("사이클 $currentCycle: 집중 시간 ${workSeconds}초 시작!");
+            _startCountdown();
+          } else {
+            print("모든 포모도로 사이클이 완료되었습니다!");
+          }
+        }
+      }
+    }); //(자동 주석이 달릴 자리 입니다. 끄셨으면 안 달려요.)
+  }
+}
 
 void main() {
-  runApp(const MyApp());
+  // (드디어 5초 집중, 3초 휴식, 총 2회 반복하는 테스트 실행)
+  PomodoroTimer timer = PomodoroTimer(workSeconds: 5, breakSeconds: 3, cycles: 2);
+  timer.start();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
-}
